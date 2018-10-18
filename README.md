@@ -1,131 +1,44 @@
-# Stream Control Transmission Protocol (SCTP) for Node.js
-This is an implementation of SCTP network protocol ([RFC4960]) in plain Javascript.
+# @nodertc/sctp
 
-Module presents the socket interface of [Net] module.
-Sockets for SCTP are described in [RFC6458].
+[![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
+[![Build Status](https://travis-ci.org/nodertc/sctp.svg?branch=master)](https://travis-ci.org/nodertc/sctp)
+[![npm](https://img.shields.io/npm/v/@nodertc/sctp.svg)](https://npmjs.org/package/@nodertc/sctp)
+[![node](https://img.shields.io/node/v/@nodertc/sctp.svg)](https://npmjs.org/package/@nodertc/sctp)
+[![license](https://img.shields.io/npm/l/@nodertc/sctp.svg)](https://npmjs.org/package/@nodertc/sctp)
+[![downloads](https://img.shields.io/npm/dm/@nodertc/sctp.svg)](https://npmjs.org/package/@nodertc/sctp)
 
-## Module status
-> Warning!
-Implementation of [RFC4960] is currently incomplete, use at your own risk.
+SCTP network protocol [RFC4960](https://tools.ietf.org/html/rfc4960) in plain js
 
-Module has alpha status. It is suitable for development purposes,
-not for production.
+## Install
 
-Module is currently tested against `sctp_test` 
-and [SCTP Conformance Tests according to ETSI TS 102 369][sctptests].
-
-## Installation
-npm install sctp
-
-## Example
-```
-const sctp = require('sctp')
-
-const server = sctp.createServer()
-
-server.on('connection', socket => {
-  console.log('remote socket connected from', socket.remoteAddress, socket.remotePort)
-  socket.on('data', data => {
-    console.log('server socket received data', data)
-    socket.write(Buffer.from('010003040000001000110008000003ea', 'hex'))
-  })
-})
-
-server.listen({port: 2905}, () => {
-  console.log('server listening')
-})
-
-const socket = sctp.connect({host: '127.0.0.1', port: 2905}, () => {
-    console.log('socket connected')
-    socket.write(Buffer.from('010003010000001000110008000003ea', 'hex'))
-  }
-)
-
-socket.on('data', buffer => {
-  console.log('socket received data from server', buffer)
-  socket.end()
-  server.close()
-  process.exit()
-})
-
+```bash
+npm i @nodertc/sctp
 ```
 
-## Different underlying transport
-It is possible to run SCTP protocol on top of IP transport layer
-or on top of DTLS transport.
-
-### Normal mode (IP transport)
-SCTP over IP is widely used in telecommunications in such upper layer protocols
-like Sigtran (M3UA, M2PA, M2UA) and Diameter.
-
-For operation in normal mode this module needs [raw-socket] Node.js module as IP network layer.
-Raw-socket module requires compilation during installation,
-but builds on most popular platforms (Linux, Windows, MacOS).
-This makes sctp module multi-platform as Node.js itself.
-
-Sctp will try to dynamically require raw-socket module.
-Raw socket mode does not prevent sctp to be used in with UDP/DTLS (see below),
-but allows to remove direct dependency on binary module.
-
-You may have to install raw-socket module manually.
-
-#### Prerequisites for building [raw-socket] module
-Windows:
-```
-npm install --global --production windows-build-tools
-npm install --global node-gyp
-```
-CentOS:
-```
-yum install centos-release-scl-rh
-yum install devtoolset-3-gcc devtoolset-3-gcc-c++
-scl enable devtoolset-3 bash
-```
-MacOS:
-install Xcode, accept license
-
-#### Need root privileges
-Quotation from [raw-socket] README:
-> Some operating system versions may restrict the use of raw sockets to privileged users. If this is the case an exception will be thrown on socket creation using a message similar to Operation not permitted (this message is likely to be different depending on operating system version).
-
-#### Disable Linux Kernel SCTP
-Linux Kernel SCTP should be disabled, because it conflicts with any other implementation.
-To prevent the "sctp" kernel module from being loaded,
-add the following line to a file in the directory "/etc/modprobe.d/"
-
-`install sctp /bin/true`
-
-### WebRTC mode (DTLS transport)
-This application of SCTP protocol is described in [RFC8261].
-
->   The Stream Control Transmission Protocol (SCTP) as defined in
-    [RFC4960] is a transport protocol running on top of the network
-    protocols IPv4 [RFC0791] or IPv6 [RFC8200].  This document specifies
-    how SCTP is used on top of the Datagram Transport Layer Security
-    (DTLS) protocol.  DTLS 1.0 is defined in [RFC4347], and the latest
-    version when this RFC was published, DTLS 1.2, is defined in
-    [RFC6347].  This encapsulation is used, for example, within the
-    WebRTC protocol suite (see [RTC-OVERVIEW] for an overview) for
-    transporting non-SRTP data between browsers.
-
-Underlying transport layer should implement [UDP] API.
-
-In this mode Node.js application can be a peer in WebRTC [data channel][RTCDataChannel].
-
-#### Usage
+## Usage
 You need to provide 'udpTransport' option
 when connecting socket or creating server:
 
 ```
-let socket = sctp.connect({
-       passive: true,
-       localPort: 5000,
-       port: 5000,
-       udpTransport: myDTLSSocket,
-     }
+const socket = sctp.connect({
+  passive: true,
+  localPort: 5000,
+  port: 5000,
+  udpTransport: udpSocket,
+});
+
+server.on('connection', socket => {
+  console.log('socket connected')
+  socket.write(Buffer.from('010003010000001000110008000003ea', 'hex'))
+})
+
+socket.on('data', buffer => {
+  console.log('socket received data from server', buffer)
+  socket.end()
+})
 ```
 
-In UDP/DTLS mode host and localAddress will be ignored,
+In UDP mode host and localAddress will be ignored,
 because addressing is provided by underlying transport.
 
 Also note that in most cases "passive" connect is a better alternative to creating server.
@@ -134,21 +47,6 @@ Also note that in most cases "passive" connect is a better alternative to creati
 Socket waits for remote connection,
 allowing it only from indicated remote port.
 This unusual option doesn't exist in TCP API.
-
-## Requirements
-Node.js version >=6.0.0
-
-## Debugging
-Set environment variable DEBUG=sctp:*
-
-## Performance
-Load-testing against `sctp_test` shows that performance of sctp module in real world use cases
-is just about 2-3 times slower than native Linux Kernel SCTP implementation.
-
-## Documentation
-Refer to Node.js [Net] API.
-
-Several existing differences explained below.
 
 ### new net.Socket([options])
 * options [Object]
@@ -256,16 +154,12 @@ sctp.PPID is an object with [SCTP Payload Protocol Identifiers][ppid]
 * [7496 Additional Policies for the Partially Reliable Extension][RFC7496]
 * [7829 SCTP-PF: A Quick Failover Algorithm][RFC7829]
 * [8260 Stream Schedulers and User Message Interleaving (I-DATA Chunk)][RFC8260]
-
 * [Draft: ECN for Stream Control Transmission Protocol][ECN]
 
-## Author
-Copyright (c) 2017-2018 Vladimir Latyshev
+## License
 
-License: MIT
-
-## Credits
-* Inspiration and some ideas are taken from [smpp] module
+- MIT, 2017-2018 &copy; Vladimir Latyshev
+- MIT, 2018 &copy; Dmitriy Tsvettsikh
 
 [raw-socket]: https://www.npmjs.com/package/raw-socket
 [Net]: https://nodejs.org/api/net.html
