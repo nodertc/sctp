@@ -1,10 +1,13 @@
 {
-  "name": "sctp",
-  "version": "0.0.14",
-  "author": {
-    "name": "Vladimir Latyshev",
-    "email": "latysheff@gmail.com"
-  },
+  "name": "@nodertc/sctp",
+  "version": "0.0.0",
+  "author": "Dmitry Tsvettsikh <me@reklatsmasters.com>",
+  "contributors": [
+    {
+      "name": "Vladimir Latyshev",
+      "email": "latysheff@gmail.com"
+    }
+  ],
   "engines": {
     "node": ">=6.0.0"
   },
@@ -21,7 +24,7 @@
     "supports-color": "^5.1.0",
     "xo": "^0.18.2"
   },
-  "description": "SCTP network protocol (RFC4960) in plain Javascript",
+  "description": "SCTP network protocol (RFC4960) in plain js",
   "keywords": [
     "RFC4960",
     "SCTP",
@@ -32,6 +35,10 @@
     "WebRTC"
   ],
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nodertc/sctp/issues"
+  },
+  "homepage": "https://github.com/nodertc/sctp#readme",
   "main": "lib/index.js",
   "scripts": {
     "test": "xo && mocha"
@@ -54,5 +61,8 @@
       }
     ]
   },
-  "repository": "https://github.com/latysheff/node-sctp.git"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nodertc/sctp.git"
+  }
 }
