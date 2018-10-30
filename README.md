@@ -16,24 +16,23 @@ npm i @nodertc/sctp
 ```
 
 ## Usage
-You need to provide 'udpTransport' option
-when connecting socket or creating server:
 
-```
+```js
+const securesocket = dtls.connect(/*...*/);
+
 const socket = sctp.connect({
-  passive: true,
   localPort: 5000,
   port: 5000,
-  udpTransport: udpSocket,
+  transport: securesocket,
 });
 
-server.on('connection', socket => {
+socket.on('connect', socket => {
   console.log('socket connected')
   socket.write(Buffer.from('010003010000001000110008000003ea', 'hex'))
 })
 
 socket.on('data', buffer => {
-  console.log('socket received data from server', buffer)
+  console.log('socket received data from server', buffer.toString())
   socket.end()
 })
 ```
@@ -76,7 +75,7 @@ For SCTP connections, available options are:
 * OS [number] Requested outbound streams. Default: 2
 * passive [boolean] Indicates passive mode. Socket will not connect,
 but allow connection of remote socket from host:port. Default: false
-* udpTransport [Object] UDP transport socket
+* transport [stream.Duplex] Any valid Duplex stream.
 
 ### socket.createStream(id)
 Creates SCTP stream with stream id. Those are SCTP socket sub-streams.
